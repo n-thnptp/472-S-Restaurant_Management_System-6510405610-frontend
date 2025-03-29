@@ -1,28 +1,57 @@
+version: '3'
+
 services:
   nextjs:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "7070:3000"
-    volumes:
-      - .:/app
-      # Persist node_modules to avoid unnecessary reinstalls
-      - node_modules:/app/node_modules
-      # Persist Next.js build cache
-      - .next:/app/.next
     environment:
       - NODE_ENV=development
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    command: yarn dev 
+    command: npm run dev
+    networks:
+      - omnidine
+    volumes:
+      - node_modules:/app/node_modules
+      - .:/app
+      - .next:/app/.next
+    ports:
+      - "7070:3000"
+
+  mariadb:
+    image: mariadb:10.6
+    ports:
+      - "3307:3307"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: omnidine
+      MYSQL_USER: omnidine
+      MYSQL_PASSWORD: omnidine
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - omnidine
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mariadb
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    depends_on:
+      - mariadb
     networks:
       - omnidine
 
 networks:
   omnidine:
-    name: omnidine-backend_sail
+    name: 472-s-restaurant_management_system-6510405610-backend_sail
     external: true
 
 volumes:
   node_modules:
+  .next:
+  mariadb_data:
